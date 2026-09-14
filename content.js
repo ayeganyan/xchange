@@ -16,6 +16,12 @@
     if (tooltip && !event.composedPath().includes(tooltip)) hideTooltip();
   });
   window.addEventListener("scroll", hideTooltip, true);
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === "local" && changes.targetCurrency) {
+      hideTooltip();
+      handleSelection();
+    }
+  });
 
   function handleSelection(event) {
     if (tooltip && event?.composedPath().includes(tooltip)) return;
@@ -35,7 +41,7 @@
       showTooltip(rect, "Converting…");
 
       chrome.runtime.sendMessage(
-        { type: "convert-to-eur", ...parsed },
+        { type: "convert", ...parsed },
         (response) => {
           if (currentRequest !== requestId) return;
 
@@ -44,12 +50,12 @@
             return;
           }
 
-          const euros = new Intl.NumberFormat(undefined, {
+          const formatted = new Intl.NumberFormat(undefined, {
             style: "currency",
-            currency: "EUR",
-            maximumFractionDigits: 2
+            currency: response.targetCurrency,
+            currencyDisplay: "code"
           }).format(response.value);
-          showTooltip(rect, euros);
+          showTooltip(rect, formatted);
         }
       );
     }, 0);

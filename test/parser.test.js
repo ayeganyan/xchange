@@ -1,9 +1,21 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { parseSelection } = require("../parser.js");
+const { parseSelection, sourceCurrencies } = require("../parser.js");
 
 const examples = [
   ["100usd", 100, "USD"],
+  ["159,00zł", 159, "PLN"],
+  ["159,99 zł", 159.99, "PLN"],
+  ["zł159,99", 159.99, "PLN"],
+  ["PLN -159,50", -159.5, "PLN"],
+  ["1.234,56zł", 1234.56, "PLN"],
+  ["€1.234,56", 1234.56, "EUR"],
+  ["1.234.567,89 EUR", 1234567.89, "EUR"],
+  ["2,5k PLN", 2500, "PLN"],
+  ["USD 1,234", 1234, "USD"],
+  ["USD 1,234,567.89", 1234567.89, "USD"],
+  ["€0,99", 0.99, "EUR"],
+  ["€1.234", 1.234, "EUR"],
   ["USD 100", 100, "USD"],
   ["$100", 100, "USD"],
   ["US$ 1,234.56", 1234.56, "USD"],
@@ -16,7 +28,13 @@ const examples = [
   ["100 CNY", 100, "CNY"],
   ["RMB 100", 100, "CNY"],
   ["100 yuan", 100, "CNY"],
-  ["100元", 100, "CNY"]
+  ["100元", 100, "CNY"],
+  ["¥150k", 150000, "JPY"],
+  ["$1.5K", 1500, "USD"],
+  ["250k CNY", 250000, "CNY"],
+  ["around ¥150k–170k", 150000, "JPY"],
+  ["about RMB 2.5k or $500", 2500, "CNY"],
+  ["prices are $300 and ¥150k", 300, "USD"]
 ];
 
 for (const [input, amount, currency] of examples) {
@@ -27,6 +45,49 @@ for (const [input, amount, currency] of examples) {
 
 test("rejects text without a supported currency", () => {
   assert.equal(parseSelection("100"), null);
-  assert.equal(parseSelection("100 EUR"), null);
-  assert.equal(parseSelection("price is $100"), null);
+  assert.equal(parseSelection("100 AZN"), null);
+  assert.equal(parseSelection("nothing to convert here"), null);
+});
+
+const expectedSources = "USD EUR JPY GBP CNY CHF AUD CAD HKD SGD INR KRW SEK MXN NZD NOK TWD BRL ZAR PLN AMD".split(" ");
+test("supports exactly the top 20 currencies plus AMD", () => {
+  assert.deepEqual([...sourceCurrencies].sort(), [...expectedSources].sort());
+});
+for (const currency of expectedSources) {
+  test(`parses ${currency} before and after amounts`, () => {
+    for (const text of [`${currency} 1,234.50`, `1,234.50 ${currency}`, `1234.50${currency.toLowerCase()}`]) {
+      assert.deepEqual(parseSelection(text), { amount: 1234.5, currency });
+    }
+    assert.deepEqual(parseSelection(`2.5k ${currency}`), { amount: 2500, currency });
+  });
+}
+
+for (const [marker, currency] of [
+  ["€", "EUR"], ["£", "GBP"], ["A$", "AUD"], ["AU$", "AUD"],
+  ["C$", "CAD"], ["CA$", "CAD"], ["HK$", "HKD"], ["S$", "SGD"],
+  ["SG$", "SGD"], ["₹", "INR"], ["₩", "KRW"], ["MX$", "MXN"],
+  ["NZ$", "NZD"], ["NT$", "TWD"], ["R$", "BRL"], ["zł", "PLN"],
+  ["֏", "AMD"], ["դրամ", "AMD"], ["Armenian drams", "AMD"],
+  ["Swiss francs", "CHF"], ["Swedish kronor", "SEK"],
+  ["Norwegian kroner", "NOK"], ["South African rand", "ZAR"]
+]) {
+  test(`recognizes ${marker} without confusing dollar symbols`, () => {
+    assert.deepEqual(parseSelection(`${marker} 100`), { amount: 100, currency });
+    assert.deepEqual(parseSelection(`100 ${marker}`), { amount: 100, currency });
+  });
+}
+
+test("ignores ambiguous markers and currency codes embedded in words", () => {
+  for (const text of ["100 kr", "R 100", "100 Fr", "xAMD 100", "100 AMDfoo", "100 դրամական", "100 AZN", "₼100"]) {
+    assert.equal(parseSelection(text), null, text);
+  }
+});
+
+test("keeps the first amount and understands Armenian thousands", () => {
+  assert.deepEqual(parseSelection("price ֏150k or €350"), { amount: 150000, currency: "AMD" });
+});
+
+test("does not truncate malformed decimal-comma amounts after a currency", () => {
+  assert.equal(parseSelection("PLN 159,00,50"), null);
+  assert.equal(parseSelection("159,00,50zł"), null);
 });

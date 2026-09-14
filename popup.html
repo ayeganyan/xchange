@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>xchange settings</title>
+    <link rel="stylesheet" href="popup.css">
+    <script src="currencies.js" defer></script>
+    <script src="popup.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <img src="icons/icon-48.png" width="40" height="40" alt="">
+      <div><h1>xchange</h1><p>A quick conversion, wherever you browse.</p></div>
+    </header>
+    <main>
+      <label for="target-currency">Convert to</label>
+      <select id="target-currency" disabled aria-describedby="save-status"></select>
+      <p id="save-status" role="status" aria-live="polite">Loading your preference…</p>
+      <div class="hint">Select an amount in USD, EUR, JPY, GBP, CNY, CHF, AUD, CAD, HKD, SGD, INR, KRW, SEK, MXN, NZD, NOK, TWD, BRL, ZAR, PLN, or AMD on a web page. Try €100 or ֏50,000.</div>
+    </main>
+    <footer>Daily reference rates · Frankfurter</footer>
+  </body>
+</html>

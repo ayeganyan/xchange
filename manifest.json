@@ -1,11 +1,22 @@
 {
   "manifest_version": 3,
   "name": "xchange",
-  "version": "1.0.1",
-  "description": "Convert selected USD, JPY, and CNY amounts to euros.",
+  "version": "1.3.1",
+  "description": "Convert USD, EUR, JPY, GBP, CNY, CHF, AUD, CAD, HKD, SGD, INR, KRW, SEK, MXN, NZD, NOK, TWD, BRL, ZAR, PLN, AMD to your currency.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
   "permissions": [
-    "scripting"
+    "scripting",
+    "storage"
   ],
+  "action": {
+    "default_title": "xchange — target currency",
+    "default_popup": "popup.html"
+  },
   "host_permissions": [
     "https://api.frankfurter.dev/*",
     "http://*/*",

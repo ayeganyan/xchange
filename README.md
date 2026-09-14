@@ -28,6 +28,12 @@ Numbers support decimal points or decimal commas: `159,00zł`, `1,234.56 USD`, a
 
 Rates come from the free Frankfurter API and are reference rates rather than trading quotes. The extension sends only the source and target currency codes when retrieving a rate; selected page text and amounts are not sent. Your target currency preference is stored locally using Chrome extension storage.
 
+## Privacy
+
+Privacy notice: [ayeganyan.github.io/xchange/privacy.html](https://ayeganyan.github.io/xchange/privacy.html).
+
+The privacy page is published by GitHub Pages from the `docs/` directory on `main`.
+
 ## Test
 
 ```sh

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Privacy notice for the xchange Chrome extension: local currency conversion, saved preferences, and exchange-rate requests.">
+  <title>Privacy notice · xchange</title>
+  <style>
+    :root { color-scheme: light dark; font-family: system-ui, sans-serif; color: #172b45; background: #f5f7fb; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 48px 20px; line-height: 1.7; }
+    main { max-width: 760px; margin: auto; padding: 40px; background: #fff; border: 1px solid #dce4ef; border-radius: 20px; }
+    .brand { font-weight: 750; font-size: 20px; text-decoration: none; }
+    h1 { font-size: clamp(28px, 5vw, 40px); line-height: 1.2; margin: 28px 0 8px; letter-spacing: -1px; }
+    h2 { font-size: 20px; line-height: 1.4; margin-top: 30px; }
+    p, ul { margin: 12px 0; }
+    li { margin: 8px 0; }
+    a { color: #095bc2; text-underline-offset: 3px; overflow-wrap: anywhere; }
+    a:focus-visible { outline: 3px solid #1687ec; outline-offset: 4px; }
+    .updated, footer { color: #56657a; font-size: 14px; }
+    .summary { background: #edf4ff; border-radius: 12px; padding: 18px 22px; margin-top: 24px; }
+    footer { border-top: 1px solid #dce4ef; margin-top: 32px; padding-top: 20px; }
+    @media (max-width: 520px) { body { padding: 16px 12px; } main { padding: 24px 20px; } }
+    @media (prefers-color-scheme: dark) {
+      :root { background: #101b2b; color: #e6edf7; }
+      main { background: #17263b; border-color: #35465e; }
+      a { color: #8fc5ff; }
+      .updated, footer { color: #b2bfd0; }
+      .summary { background: #203854; }
+      footer { border-color: #35465e; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <a class="brand" href="https://github.com/ayeganyan/xchange">xchange</a>
+  <h1>Privacy notice</h1>
+  <p class="updated">Last updated: <time datetime="2026-09-14">September 14, 2026</time></p>
+  <p>This notice describes how the xchange Chrome extension handles information when you select an amount on a web page and convert it to your preferred currency.</p>
+  <div class="summary">Selected text and amounts are processed on your device. Exchange-rate requests send currency codes to Frankfurter. Your preferred target currency is saved locally. The extension has no analytics, advertising, or user accounts.</div>
+
+  <h2>Information processed on your device</h2>
+  <p>xchange reads the text you select on a web page to identify a currency and amount. It passes the detected amount and source currency to its background component within Chrome, calculates the conversion locally, and displays the result beside your selection.</p>
+  <p>The extension does not send selected text, selected amounts, page contents, page URLs, or browsing history to the developer or the exchange-rate service. It does not keep a history of your selections or conversions.</p>
+
+  <h2>Saved preferences and temporary data</h2>
+  <p>Your chosen target currency is stored on your device using Chrome extension local storage. xchange does not use Chrome sync storage for this preference. You can change it in the extension popup; uninstalling the extension removes its local settings.</p>
+  <p>Exchange rates are cached temporarily in the extension’s background memory, with a six-hour freshness limit. This cache contains currency pairs, rates, and cache timestamps, not selected text or amounts. It is cleared when the background component stops.</p>
+
+  <h2>Exchange-rate requests</h2>
+  <p>When a rate is needed and no fresh cached rate is available, xchange makes an HTTPS request to <a href="https://frankfurter.dev/">Frankfurter</a> at api.frankfurter.dev. The request identifies the source and target currency codes, such as USD and EUR. No request is needed when both currencies are the same.</p>
+  <p>As with other internet requests, the service and its network providers receive connection information such as your IP address. Frankfurter states that its public API does not collect or log personal data, IP addresses, or request URLs, and uses Cloudflare for caching and protection. See <a href="https://frankfurter.dev/#faq">Frankfurter’s FAQ</a> for its current practices.</p>
+
+  <h2>Why the extension needs permissions</h2>
+  <ul>
+    <li><strong>Website access:</strong> detect selected currency amounts and display conversions on ordinary HTTP and HTTPS pages.</li>
+    <li><strong>Scripting:</strong> initialize the extension’s selection handling in existing tabs after installation or an update.</li>
+    <li><strong>Storage:</strong> remember your target currency on your device.</li>
+    <li><strong>Exchange-rate service access:</strong> retrieve rates from Frankfurter.</li>
+  </ul>
+  <p>You can restrict website access through Chrome’s extension settings or uninstall xchange at any time.</p>
+
+  <h2>Analytics, advertising, and sharing</h2>
+  <p>xchange does not include analytics, tracking pixels, advertising, or telemetry. The developer does not receive your selections, conversions, or saved preferences through the extension, and does not sell or share them for advertising.</p>
+
+  <h2>This website and support</h2>
+  <p>This privacy page is hosted on GitHub Pages and does not add cookies, analytics, or third-party scripts. GitHub states that it logs visitors’ IP addresses for security purposes. See <a href="https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages#data-collection">GitHub Pages data collection</a> and the <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub Privacy Statement</a>.</p>
+  <p>If you contact the maintainer through <a href="https://github.com/ayeganyan/xchange/issues">GitHub Issues</a>, the information you submit is visible publicly and is used to respond to your request. Do not include private page contents or other sensitive information in an issue.</p>
+
+  <h2>Changes and contact</h2>
+  <p>This notice will be updated when the extension’s data practices change. The date above identifies the latest revision. For privacy questions, contact the maintainer, <a href="https://github.com/ayeganyan">ayeganyan</a>, through the <a href="https://github.com/ayeganyan/xchange/issues">project’s issue tracker</a>.</p>
+  <footer>xchange is open source. <a href="https://github.com/ayeganyan/xchange">View the source code</a>.</footer>
+</main>
+</body>
+</html>

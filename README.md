@@ -51,3 +51,12 @@ Run the packaging script (requires Node.js, `zip`, and `unzip`):
 ```
 
 It reads the version from `manifest.json` and creates `dist/xchange-<version>.zip` with only runtime files and icons. The manifest is at the ZIP root. Running it again replaces the archive for that version. The `dist/` folder is ignored by Git.
+
+## Release
+
+After the [one-time publishing setup](docs/releases.md), run
+`./scripts/release.sh patch` (or `minor` / `major`) from a clean, synchronized
+`main` branch. The script tests, bumps and commits the manifest version, then
+pushes a numbered tag. GitHub Actions packages and submits the update to Chrome
+Web Store for automatic publishing after approval. See the release guide for
+configuration and recovery instructions.

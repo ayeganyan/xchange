@@ -7,6 +7,7 @@
 
   let tooltip;
   let requestId = 0;
+  let selectedText;
 
   document.addEventListener("mouseup", handleSelection);
   document.addEventListener("keyup", (event) => {
@@ -14,6 +15,11 @@
   });
   document.addEventListener("mousedown", (event) => {
     if (tooltip && !event.composedPath().includes(tooltip)) hideTooltip();
+  });
+  document.addEventListener("selectionchange", () => {
+    if (selectedText !== undefined && window.getSelection()?.toString() !== selectedText) {
+      hideTooltip();
+    }
   });
   window.addEventListener("scroll", hideTooltip, true);
   chrome.storage.onChanged.addListener((changes, area) => {
@@ -26,24 +32,34 @@
   function handleSelection(event) {
     if (tooltip && event?.composedPath().includes(tooltip)) return;
 
+    const currentRequest = ++requestId;
     setTimeout(() => {
+      if (currentRequest !== requestId) return;
       const selection = window.getSelection();
-      const parsed = globalThis.CurrencySelection.parseSelection(selection?.toString());
+      const text = selection?.toString();
+      const parsed = globalThis.CurrencySelection.parseSelection(text);
       if (!parsed || !selection.rangeCount) {
         hideTooltip();
         return;
       }
 
       const rect = selection.getRangeAt(0).getBoundingClientRect();
-      if (!rect.width && !rect.height) return;
+      if (!rect.width && !rect.height) {
+        hideTooltip();
+        return;
+      }
 
-      const currentRequest = ++requestId;
+      selectedText = text;
       showTooltip(rect, "Converting…");
 
       chrome.runtime.sendMessage(
         { type: "convert", ...parsed },
         (response) => {
           if (currentRequest !== requestId) return;
+          if (window.getSelection()?.toString() !== text) {
+            hideTooltip();
+            return;
+          }
 
           if (chrome.runtime.lastError || !response?.ok) {
             showTooltip(rect, "Rate unavailable");
@@ -72,6 +88,8 @@
     tooltip = document.createElement("span");
     tooltip.style.cssText = [
       "all: initial",
+      "user-select: none",
+      "pointer-events: none",
       "position: fixed",
       "z-index: 2147483647",
       `left: ${Math.min(Math.max(8, rect.left), window.innerWidth - 160)}px`,
@@ -92,6 +110,7 @@
       "color: #f4f7f4",
       "box-shadow: 0 4px 16px rgba(0,0,0,.24)",
       "font: 600 14px/1.2 system-ui, sans-serif",
+      "user-select: none",
       "padding: 9px 11px",
       "display: flex",
       "flex-wrap: wrap",
@@ -112,6 +131,9 @@
   function hideTooltip(cancelRequest = true) {
     tooltip?.remove();
     tooltip = undefined;
-    if (cancelRequest) requestId += 1;
+    if (cancelRequest) {
+      requestId += 1;
+      selectedText = undefined;
+    }
   }
 })();

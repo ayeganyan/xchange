@@ -9,7 +9,6 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
 
-  const amount = "([+-]?(?:\\d{1,3}(?:,\\d{3})+(?:\\.\\d+)?|\\d{1,3}(?:\\.\\d{3})+,\\d+|\\d+(?:[.,]\\d+)?))";
   const currencies = [
     {
       currency: "USD",
@@ -59,53 +58,74 @@
   }
   const sourceCurrencies = Object.freeze(currencies.map(({ currency }) => currency));
 
+  const markers = currencies.flatMap(({ currency, prefix, suffix }) =>
+    [...new Set([...prefix, ...suffix])].map(pattern => ({ currency, pattern }))
+  );
+  const markerPattern = markers.map(({ pattern }) => `(?:${pattern})`).join("|");
+  const markerCurrency = text => markers.find(({ pattern }) =>
+    new RegExp(`^(?:${pattern})$`, "iu").test(text)
+  )?.currency;
+  const separators = /^[\s]*[-‐‑‒–—―−~〜～][\s]*$/u;
+  // Capture the entire numeric token before validating it, never a valid fragment.
+  const numberPattern = "[+-]?\\d(?:[\\d.,'’]|[ \\u00a0\\u202f]+(?=\\d))*";
+  const endpointPattern = new RegExp(
+    `(?<![\\p{L}\\d.,'’])(?<sign>[+-])?(?<prefix>${markerPattern})?\\s*` +
+    `(?<number>${numberPattern})\\s*(?<multiplier>k)?` +
+    `(?:\\s*(?<suffix>${markerPattern}))?(?![\\p{L}\\d.,'’])`, "giu"
+  );
+
+  function parseNumber(raw) {
+    let normalized = raw;
+    if (/[ '’\u00a0\u202f]/u.test(raw)) {
+      if (!/^[+-]?\d{1,3}([ '’\u00a0\u202f])\d{3}(?:\1\d{3})*(?:[.,]\d+)?$/u.test(raw)) return null;
+      normalized = raw.replace(/[ '’\u00a0\u202f]/gu, "").replace(",", ".");
+    } else if (/^[+-]?\d{1,3}(?:,\d{3})+(?:\.\d+)?$/.test(raw)) {
+      normalized = raw.replaceAll(",", "");
+    } else if (/^[+-]?\d{1,3}(?:\.\d{3})+,\d+$/.test(raw)) {
+      normalized = raw.replaceAll(".", "").replace(",", ".");
+    } else if (/^[+-]?\d{1,3}(?:\.\d{3}){2,}$/.test(raw)) {
+      normalized = raw.replaceAll(".", "");
+    } else if (/^[+-]?\d+(?:[.,]\d+)?$/.test(raw)) {
+      // A lone dot with three trailing digits could mean decimal or grouping.
+      if (/^[+-]?[1-9]\d{0,2}\.\d{3}$/.test(raw)) return null;
+      normalized = raw.replace(",", ".");
+    } else return null;
+    const value = Number(normalized);
+    return Number.isFinite(value) ? value : null;
+  }
+
   function parseSelection(selection) {
     const text = String(selection || "").trim();
     if (!text || text.length > 500) return null;
-
-    const candidates = [];
-
-    for (const definition of currencies) {
-      for (const marker of definition.prefix) {
-        const match = text.match(
-          new RegExp(`(?<![\\p{L}\\d])(?:${marker})\\s*${amount}(?![.,]\\d)\\s*([kK])?(?![\\d\\p{L}])`, "iu")
-        );
-        if (match) candidates.push(result(match, definition.currency));
+    const endpoints = [...text.matchAll(endpointPattern)].map(match => {
+      const { prefix, suffix, number, multiplier, sign } = match.groups;
+      const from = prefix && markerCurrency(prefix);
+      const to = suffix && markerCurrency(suffix);
+      const parsed = parseNumber(number);
+      const value = parsed === null ? null : parsed * (multiplier ? 1000 : 1) * (sign === "-" ? -1 : 1);
+      return {
+        raw: match[0].trim(),
+        currency: from || to,
+        amount: value,
+        valid: !(from && to && from !== to) && value !== null && Number.isFinite(value),
+        index: match.index,
+        end: match.index + match[0].length
+      };
+    });
+    for (let i = 0; i < endpoints.length; i++) {
+      const first = endpoints[i];
+      const second = endpoints[i + 1];
+      const gap = second && text.slice(first.end, second.index);
+      const attachedHyphen = second && /^\s*$/.test(gap) && second.raw.startsWith("-");
+      if (second && (separators.test(gap) || attachedHyphen) && (first.currency || second.currency)) {
+        if (!first.valid || !second.valid || (first.currency && second.currency && first.currency !== second.currency)) return null;
+        return { amount: first.amount, endAmount: attachedHyphen ? -second.amount : second.amount, currency: first.currency || second.currency };
       }
-
-      for (const marker of definition.suffix) {
-        const match = text.match(
-          new RegExp(`(?<![\\p{L}\\d.,])${amount}\\s*([kK])?\\s*(?:${marker})(?![\\p{L}\\d])`, "iu")
-        );
-        if (match) candidates.push(result(match, definition.currency));
+      if (first.currency) {
+        return first.valid ? { amount: first.amount, currency: first.currency } : null;
       }
     }
-
-    candidates.sort((a, b) => a.index - b.index || b.length - a.length);
-    const first = candidates[0];
-    return first ? { amount: first.amount, currency: first.currency } : null;
-  }
-
-  function result(match, currency) {
-    const raw = match[1];
-    let normalized = raw;
-    if (raw.includes(",") && raw.includes(".")) {
-      normalized = raw.lastIndexOf(",") > raw.lastIndexOf(".")
-        ? raw.replaceAll(".", "").replace(",", ".")
-        : raw.replaceAll(",", "");
-    } else if (raw.includes(",")) {
-      // Keep the existing interpretation of 1,234 as grouped thousands.
-      normalized = /^[+-]?\d{1,3}(?:,\d{3})+$/.test(raw)
-        ? raw.replaceAll(",", "")
-        : raw.replace(",", ".");
-    }
-    const value = Number(normalized);
-    return {
-      amount: value * (match[2] ? 1000 : 1),
-      currency,
-      index: match.index,
-      length: match[0].length
-    };
+    return null;
   }
 
   return { parseSelection, sourceCurrencies };

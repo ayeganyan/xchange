@@ -104,3 +104,12 @@ test("invalid inputs, bad rates and network failures produce errors", async () =
   assert.equal((await app.request({ currency: "BAD" })).ok, false);
   assert.equal(app.urls.length, 0);
 });
+
+test("range endpoints share a rate and target", async () => {
+  const app = worker();
+  const result = await app.request({ amount: 150, endAmount: 170 });
+  assert.equal(result.value, 120);
+  assert.equal(result.endValue, 136);
+  assert.equal(app.urls.length, 1);
+  assert.equal((await app.request({ endAmount: Infinity })).ok, false);
+});

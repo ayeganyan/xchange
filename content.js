@@ -50,18 +50,23 @@
             return;
           }
 
-          const formatted = new Intl.NumberFormat(undefined, {
+          const sourceFormat = new Intl.NumberFormat(undefined, { maximumFractionDigits: 20 });
+          const targetFormat = new Intl.NumberFormat(undefined, {
             style: "currency",
             currency: response.targetCurrency,
             currencyDisplay: "code"
-          }).format(response.value);
-          showTooltip(rect, formatted);
+          });
+          const source = `${parsed.currency} ${sourceFormat.format(parsed.amount)}` +
+            (parsed.endAmount === undefined ? "" : `–${sourceFormat.format(parsed.endAmount)}`);
+          const target = targetFormat.format(response.value) +
+            (response.endValue === undefined ? "" : `–${targetFormat.format(response.endValue)}`);
+          showTooltip(rect, source, `≈ ${target}`);
         }
       );
     }, 0);
   }
 
-  function showTooltip(rect, label) {
+  function showTooltip(rect, label, converted) {
     hideTooltip(false);
 
     tooltip = document.createElement("span");
@@ -76,7 +81,11 @@
     const shadow = tooltip.attachShadow({ mode: "closed" });
     const result = document.createElement("div");
     result.setAttribute("role", "status");
-    result.textContent = label;
+    for (const text of converted ? [label, converted] : [label]) {
+      const line = document.createElement("span");
+      line.textContent = text;
+      result.append(line);
+    }
     result.style.cssText = [
       "border-radius: 8px",
       "background: #172019",
@@ -84,11 +93,20 @@
       "box-shadow: 0 4px 16px rgba(0,0,0,.24)",
       "font: 600 14px/1.2 system-ui, sans-serif",
       "padding: 9px 11px",
-      "white-space: nowrap"
+      "display: flex",
+      "flex-wrap: wrap",
+      "gap: 4px 6px",
+      "width: max-content",
+      "box-sizing: border-box",
+      `max-width: ${Math.max(0, Math.min(420, window.innerWidth - 16))}px`,
+      "overflow-wrap: anywhere"
     ].join(";");
 
     shadow.append(result);
     document.documentElement.append(tooltip);
+    const bounds = tooltip.getBoundingClientRect();
+    tooltip.style.left = `${Math.max(8, Math.min(rect.left, window.innerWidth - bounds.width - 8))}px`;
+    tooltip.style.top = `${Math.max(8, Math.min(rect.bottom + 8, window.innerHeight - bounds.height - 8))}px`;
   }
 
   function hideTooltip(cancelRequest = true) {

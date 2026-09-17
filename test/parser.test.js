@@ -15,7 +15,6 @@ const examples = [
   ["USD 1,234", 1234, "USD"],
   ["USD 1,234,567.89", 1234567.89, "USD"],
   ["€0,99", 0.99, "EUR"],
-  ["€1.234", 1.234, "EUR"],
   ["USD 100", 100, "USD"],
   ["$100", 100, "USD"],
   ["US$ 1,234.56", 1234.56, "USD"],
@@ -32,7 +31,6 @@ const examples = [
   ["¥150k", 150000, "JPY"],
   ["$1.5K", 1500, "USD"],
   ["250k CNY", 250000, "CNY"],
-  ["around ¥150k–170k", 150000, "JPY"],
   ["about RMB 2.5k or $500", 2500, "CNY"],
   ["prices are $300 and ¥150k", 300, "USD"]
 ];
@@ -90,4 +88,38 @@ test("keeps the first amount and understands Armenian thousands", () => {
 test("does not truncate malformed decimal-comma amounts after a currency", () => {
   assert.equal(parseSelection("PLN 159,00,50"), null);
   assert.equal(parseSelection("159,00,50zł"), null);
+});
+
+for (const input of ["€1 234,56", "1 234,56 EUR", "€1\u00a0234,56", "€1\u202f234,56"]) {
+  test(`parses grouped amount ${input}`, () => {
+    assert.deepEqual(parseSelection(input), { amount: 1234.56, currency: "EUR" });
+  });
+}
+test("handles apostrophe grouping and leading signs", () => {
+  assert.deepEqual(parseSelection("CHF 1’234.50"), { amount: 1234.5, currency: "CHF" });
+  assert.deepEqual(parseSelection("-$100"), { amount: -100, currency: "USD" });
+});
+for (const symbol of "-‐‑‒–—―−~〜～") {
+  for (const space of ["", " ", "   ", "\t\n"]) {
+    test(`range separator ${JSON.stringify(symbol + space)}`, () => {
+      assert.deepEqual(parseSelection(`around ¥150k${space}${symbol}${space}170k`),
+        { amount: 150000, endAmount: 170000, currency: "JPY" });
+    });
+  }
+}
+for (const [input, amount, endAmount, currency] of [
+  ["¥150–170k", 150, 170000, "JPY"],
+  ["150,000 - 170,000 JPY", 150000, 170000, "JPY"],
+  ["€1 234,56–€2 345,67", 1234.56, 2345.67, "EUR"],
+  ["CHF 1’234.50 - 2’345.50 CHF", 1234.5, 2345.5, "CHF"],
+  ["USD -100--50", -100, -50, "USD"]
+]) {
+  test(`converts range ${input}`, () => {
+    assert.deepEqual(parseSelection(input), { amount, endAmount, currency });
+  });
+}
+test("rejects ambiguous, malformed and mixed-currency prices", () => {
+  for (const input of ["€1.234", "€12 34,56", "12 34,56 EUR", "CHF 1’23.50", "$100–€200", "¥100–170,00,50", "€1.234–2.345"]) {
+    assert.equal(parseSelection(input), null, input);
+  }
 });

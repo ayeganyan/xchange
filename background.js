@@ -27,15 +27,15 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (!["convert", "convert-to-eur"].includes(message?.type)) return false;
 
   // Older content scripts still label their result as EUR until the page reloads.
-  convert(message.amount, message.currency, message.type === "convert-to-eur" ? "EUR" : undefined)
+  convert(message.amount, message.currency, message.type === "convert-to-eur" ? "EUR" : undefined, message.endAmount)
     .then((conversion) => sendResponse({ ok: true, ...conversion }))
     .catch(() => sendResponse({ ok: false, error: "Rate unavailable" }));
 
   return true;
 });
 
-async function convert(amount, currency, legacyTarget) {
-  if (!Number.isFinite(amount) || !CurrencySelection.sourceCurrencies.includes(currency)) {
+async function convert(amount, currency, legacyTarget, endAmount) {
+  if ((endAmount !== undefined && !Number.isFinite(endAmount)) || !Number.isFinite(amount) || !CurrencySelection.sourceCurrencies.includes(currency)) {
     throw new Error("Invalid conversion request");
   }
 
@@ -46,7 +46,9 @@ async function convert(amount, currency, legacyTarget) {
   const rate = currency === targetCurrency ? 1 : await getRate(currency, targetCurrency);
   const value = amount * rate;
   if (!Number.isFinite(value)) throw new Error("Invalid conversion result");
-  return { value, rate, targetCurrency };
+  const endValue = endAmount === undefined ? undefined : endAmount * rate;
+  if (endValue !== undefined && !Number.isFinite(endValue)) throw new Error("Invalid conversion result");
+  return { value, rate, targetCurrency, ...(endValue === undefined ? {} : { endValue }) };
 }
 
 async function getRate(currency, targetCurrency) {

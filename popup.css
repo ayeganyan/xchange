@@ -11,10 +11,18 @@ select:focus-visible { outline: 3px solid #0086ff; outline-offset: 2px; }
 #save-status { min-height: 18px; margin: 8px 0 18px; font-size: 12px; color: #266443; }
 #save-status.error { color: #ba2929; }
 .hint { padding: 13px; border-radius: 9px; background: #e9eff7; font-size: 12px; line-height: 1.6; }
-footer { margin-top: 20px; color: #596779; font-size: 10px; }
+footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 18px; padding-top: 14px; border-top: 1px solid #dce3ed; color: #596779; font-size: 10px; }
+footer p { margin: 0; line-height: 1.6; }
+footer p span { font-size: 9px; }
+.coffee-button { display: inline-flex; flex-shrink: 0; align-items: center; gap: 6px; padding: 8px 10px; border: 1px solid #d8cba5; border-radius: 7px; background: #fbf5e6; color: #715519; font-size: 10px; font-weight: 600; text-decoration: none; }
+.coffee-button:hover { background: #f5e9cb; border-color: #bca56b; }
+.coffee-button:focus-visible { outline: 3px solid #0086ff; outline-offset: 3px; }
 @media (prefers-color-scheme: dark) {
   body { background: #101d31; color: #f0f5fd; }
   header p, footer { color: #a8b8cc; }
+  footer { border-color: #293b52; }
+  .coffee-button { background: #252b32; border-color: #4a4435; color: #e2c581; }
+  .coffee-button:hover { background: #34352f; border-color: #89764b; }
   select { background: #192c46; color: #f0f5fd; border-color: #496079; }
   .hint { background: #192c46; }
   #save-status { color: #69d6a1; }

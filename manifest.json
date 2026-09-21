@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "xchange",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Select a price to see an estimate in your currency.",
   "icons": {
     "16": "icons/icon-16.png",

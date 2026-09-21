@@ -1,4 +1,4 @@
-# xchange
+# xchange - Currency Converter
 
 Select a price to see an estimate in your currency.
 

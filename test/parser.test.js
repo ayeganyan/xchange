@@ -123,3 +123,17 @@ test("rejects ambiguous, malformed and mixed-currency prices", () => {
     assert.equal(parseSelection(input), null, input);
   }
 });
+
+
+test("resolves bare yen/yuan symbols from the page domain, defaulting to JPY", () => {
+  for (const hostname of ["shop.cn", "shop.com.cn", "SHOP.CN.", "shop.中国", "shop.中國", "shop.xn--fiqs8s", "shop.xn--fiqz9s", "shop.jp", "shop.co.jp", "shop.com", "cn.example.com", "shop.cn.example.com", "", "shopcn"]) {
+    const currency = ["shop.cn", "shop.com.cn", "SHOP.CN.", "shop.中国", "shop.中國", "shop.xn--fiqs8s", "shop.xn--fiqz9s"].includes(hostname) ? "CNY" : "JPY";
+    for (const input of ["¥100", "￥100", "100 ¥"]) {
+      assert.deepEqual(parseSelection(input, hostname), { amount: 100, currency }, `${input} on ${hostname}`);
+    }
+    assert.deepEqual(parseSelection("¥100–200", hostname), { amount: 100, endAmount: 200, currency });
+    for (const [input, explicit] of [["CN¥100", "CNY"], ["JP¥100", "JPY"], ["CNY 100", "CNY"], ["JPY 100", "JPY"]]) {
+      assert.deepEqual(parseSelection(input, hostname), { amount: 100, currency: explicit });
+    }
+  }
+});

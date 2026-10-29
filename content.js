@@ -37,7 +37,7 @@
       if (currentRequest !== requestId) return;
       const selection = window.getSelection();
       const text = selection?.toString();
-      const parsed = globalThis.CurrencySelection.parseSelection(text);
+      const parsed = globalThis.CurrencySelection.parseSelection(text, window.location?.hostname);
       if (!parsed || !selection.rangeCount) {
         hideTooltip();
         return;

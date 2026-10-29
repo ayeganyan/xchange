@@ -94,13 +94,18 @@
     return Number.isFinite(value) ? value : null;
   }
 
-  function parseSelection(selection) {
+  function parseSelection(selection, hostname = "") {
+    // Match domain suffixes, never words embedded in an unrelated hostname.
+    const chineseDomain = /(?:^|\.)(?:cn|中国|中國|xn--fiqs8s|xn--fiqz9s)\.?$/iu.test(hostname);
+    const resolveMarker = marker => /^[¥￥]$/u.test(marker)
+      ? (chineseDomain ? "CNY" : "JPY")
+      : markerCurrency(marker);
     const text = String(selection || "").trim();
     if (!text || text.length > 500) return null;
     const endpoints = [...text.matchAll(endpointPattern)].map(match => {
       const { prefix, suffix, number, multiplier, sign } = match.groups;
-      const from = prefix && markerCurrency(prefix);
-      const to = suffix && markerCurrency(suffix);
+      const from = prefix && resolveMarker(prefix);
+      const to = suffix && resolveMarker(suffix);
       const parsed = parseNumber(number);
       const value = parsed === null ? null : parsed * (multiplier ? 1000 : 1) * (sign === "-" ? -1 : 1);
       return {

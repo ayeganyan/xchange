@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 const { parseSelection } = require("../parser.js");
 
-function page(text, response, { deferResponse = false, deferSelection = false } = {}) {
+function page(text, response, { deferResponse = false, deferSelection = false, hostname = "example.com" } = {}) {
   const events = {};
   const hosts = [];
   const requests = [];
@@ -28,6 +28,7 @@ function page(text, response, { deferResponse = false, deferSelection = false } 
       documentElement: { append(host) { hosts.push(host); } }
     },
     window: {
+      location: { hostname },
       innerWidth: 800, innerHeight: 600, addEventListener() {},
       getSelection() {
         return { toString: () => text, rangeCount: 1,
@@ -120,4 +121,17 @@ test("only the newest queued selection handler can request a conversion", () => 
   app.flush();
   assert.equal(app.requests.length, 1);
   assert.equal(app.requests[0].currency, "PLN");
+});
+
+
+test("passes the page domain to currency detection for conversion requests", () => {
+  for (const [hostname, text, currency] of [
+    ["shop.cn", "¥100", "CNY"], ["shop.co.jp", "¥100", "JPY"],
+    ["shop.com", "¥100", "JPY"], ["shop.cn", "JP¥100", "JPY"],
+    ["shop.jp", "CN¥100", "CNY"]
+  ]) {
+    const app = page(text, undefined, { hostname, deferResponse: true });
+    assert.equal(app.requests[0].currency, currency);
+    assert.equal(app.requests[0].amount, 100);
+  }
 });

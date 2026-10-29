@@ -26,7 +26,7 @@ Numbers support decimal points or decimal commas: `159,00zł`, `1,234.56 USD`, a
 
 `k` means thousand and applies only to the number it follows. Ranges convert both endpoints: `¥150k–170k` means JPY 150,000–170,000, while `¥150–170k` means JPY 150–170,000. A currency marker on either endpoint applies to both; ranges with different explicit currencies are rejected. Supported separators are `-`, `‐`, `‑`, `‒`, `–`, `—`, `―`, `−`, `~`, `〜`, and `～`, with any amount of surrounding whitespace. If a larger selection contains unrelated prices, xchange converts the first recognized price or range.
 
-`$` and unqualified “dollars” mean USD; `¥` means JPY. Use `CNY`, `RMB`, `CN¥`, `yuan`, or `元` for Chinese yuan. Use explicit markers such as `CA$`, `AU$`, `SG$`, `NZ$`, `MX$`, and `NT$` for other dollar currencies. Ambiguous `kr`, `R`, and `Fr` require a code or full currency name.
+`$` and unqualified “dollars” mean USD; `¥` (or `￥`) means CNY on Chinese domains (`.cn`, `.中国`, `.中國`) and JPY on Japanese domains or any other domain. Explicit `CN¥100` and `JP¥100` always mean CNY and JPY respectively. Use `CNY`, `RMB`, `CN¥`, `yuan`, or `元` for Chinese yuan. Use explicit markers such as `CA$`, `AU$`, `SG$`, `NZ$`, `MX$`, and `NT$` for other dollar currencies. Ambiguous `kr`, `R`, and `Fr` require a code or full currency name.
 
 Rates come from the free Frankfurter API and are reference rates rather than trading quotes. The extension sends only the source and target currency codes when retrieving a rate; selected page text and amounts are not sent. Your target currency preference is stored locally using Chrome extension storage.
 

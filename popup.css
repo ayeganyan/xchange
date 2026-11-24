@@ -6,6 +6,8 @@ header img { flex-shrink: 0; }
 h1 { margin: 0 0 3px; font-size: 21px; letter-spacing: -.6px; }
 header p { margin: 0; font-size: 11px; color: #596779; line-height: 1.5; }
 label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 650; }
+.usage-setting { display: flex; align-items: center; gap: 6px; min-height: 24px; margin: 8px 0 0; font-size: 11px; font-weight: 400; cursor: pointer; }
+.usage-setting input { width: 13px; height: 13px; margin: 0; }
 select { width: 100%; padding: 11px 9px; border: 1px solid #bbc7d8; border-radius: 8px; background: white; color: #12233d; font: inherit; font-size: 13px; }
 select:focus-visible { outline: 3px solid #0086ff; outline-offset: 2px; }
 #save-status { min-height: 18px; margin: 8px 0 18px; font-size: 12px; color: #266443; }

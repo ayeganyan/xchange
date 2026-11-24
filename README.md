@@ -60,3 +60,13 @@ After the [one-time publishing setup](docs/releases.md), run
 pushes a numbered tag. GitHub Actions packages and submits the update to Chrome
 Web Store for automatic publishing after approval. See the release guide for
 configuration and recovery instructions.
+
+### Conversion analytics setup
+
+Deploy `analytics/handler.mjs` as an HTTPS Fetch API worker. Set
+`EXTENSION_ORIGIN` to `chrome-extension://<published extension ID>`,
+`GA4_MEASUREMENT_ID` to your GA4 web stream ID, and `GA4_API_SECRET` to
+that stream’s Measurement Protocol secret on the server. Set
+`ANALYTICS_ENDPOINT` in `background.js` to the deployed URL before packaging.
+Sharing starts enabled on new installations. Uncheck the sharing setting in the popup to turn it off. Updates preserve the current setting. In GA4, filter by `conversion_shown` and use Event count
+for conversions and Total users for distinct participating installations.

@@ -77,6 +77,7 @@
           const target = targetFormat.format(response.value) +
             (response.endValue === undefined ? "" : `–${targetFormat.format(response.endValue)}`);
           showTooltip(rect, source, `≈ ${target}`);
+          chrome.runtime.sendMessage({ type: "conversion_shown" }, () => void chrome.runtime.lastError);
         }
       );
     }, 0);

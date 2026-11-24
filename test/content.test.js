@@ -60,6 +60,8 @@ function page(text, response, { deferResponse = false, deferSelection = false, h
 
 test("selection displays source and both converted range endpoints", () => {
   const app = page("¥150k–170k", { ok: true, value: 900, endValue: 1020, targetCurrency: "EUR" });
+  assert.deepEqual(Object.keys(app.requests[1]), ["type"]);
+  assert.equal(app.requests[1].type, "conversion_shown");
   assert.equal(app.requests[0].endAmount, 170000);
   assert.match(app.lines[0], /^JPY .*150.*170/);
   assert.match(app.lines[1], /^≈ .*900.*1.*020/);

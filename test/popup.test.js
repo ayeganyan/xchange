@@ -8,10 +8,11 @@ async function popup(storage = {}, failSave = false) {
   let change;
   const select = { disabled: true, options: [], append(option) { this.options.push(option); },
     addEventListener(_event, fn) { change = fn; }, focus() {} };
+  const usage = { addEventListener() {} };
   const status = { classList: { add() {}, remove() {} } };
   const context = vm.createContext({
     document: {
-      getElementById(id) { return id === "target-currency" ? select : status; },
+      getElementById(id) { return id === "target-currency" ? select : id === "usage" ? usage : status; },
       createElement() { return {}; }
     },
     chrome: { storage: { local: {

@@ -4,9 +4,13 @@ importScripts("currencies.js", "parser.js");
 
 const API_ROOT = "https://api.frankfurter.dev/v2/rate";
 const CACHE_TIME_MS = 6 * 60 * 60 * 1000;
+const ANALYTICS_ENDPOINT = "https://xchange-analytics.ayeganyan92.workers.dev";
 const rateCache = new Map();
 
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onInstalled.addListener(async ({ reason }) => {
+  if (reason === "install") {
+    await chrome.storage.local.set({ analyticsClientId: crypto.randomUUID() });
+  }
   chrome.tabs.query({}).then((tabs) => {
     for (const tab of tabs) {
       if (!tab.id) continue;
@@ -24,6 +28,11 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message?.type === "conversion_shown") {
+    if (!ANALYTICS_ENDPOINT || _sender.tab?.incognito) return false;
+    reportConversion().then(() => sendResponse(), () => sendResponse());
+    return true;
+  }
   if (!["convert", "convert-to-eur"].includes(message?.type)) return false;
 
   // Older content scripts still label their result as EUR until the page reloads.
@@ -33,6 +42,19 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
   return true;
 });
+
+async function reportConversion() {
+  const { analyticsClientId } = await chrome.storage.local.get("analyticsClientId");
+  if (!analyticsClientId) return;
+  await fetch(ANALYTICS_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "omit",
+    referrerPolicy: "no-referrer",
+    redirect: "error",
+    body: JSON.stringify({ clientId: analyticsClientId })
+  });
+}
 
 async function convert(amount, currency, legacyTarget, endAmount) {
   if ((endAmount !== undefined && !Number.isFinite(endAmount)) || !Number.isFinite(amount) || !CurrencySelection.sourceCurrencies.includes(currency)) {

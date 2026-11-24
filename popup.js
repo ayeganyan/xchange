@@ -2,6 +2,7 @@
 
 const currencySelect = document.getElementById("target-currency");
 const saveStatus = document.getElementById("save-status");
+const usage = document.getElementById("usage");
 let savedCurrency = "EUR";
 
 for (const [code, name] of Object.entries(XchangeCurrencies)) {
@@ -14,7 +15,9 @@ currencySelect.value = savedCurrency;
 
 async function initialize() {
   try {
-    const { targetCurrency } = await chrome.storage.local.get("targetCurrency");
+    const { targetCurrency, analyticsClientId } = await chrome.storage.local.get(["targetCurrency", "analyticsClientId"]);
+    usage.checked = Boolean(analyticsClientId);
+    usage.disabled = false;
     if (Object.hasOwn(XchangeCurrencies, targetCurrency)) savedCurrency = targetCurrency;
     currencySelect.value = savedCurrency;
     saveStatus.textContent = "Changes save automatically.";
@@ -41,6 +44,19 @@ currencySelect.addEventListener("change", async () => {
   } finally {
     currencySelect.disabled = false;
     currencySelect.focus();
+  }
+});
+
+usage.addEventListener("change", async () => {
+  usage.disabled = true;
+  try {
+    if (usage.checked) await chrome.storage.local.set({ analyticsClientId: crypto.randomUUID() });
+    else await chrome.storage.local.remove("analyticsClientId");
+  } catch {
+    usage.checked = !usage.checked;
+    saveStatus.textContent = "Couldn’t save usage sharing. Please try again.";
+  } finally {
+    usage.disabled = false;
   }
 });
 
